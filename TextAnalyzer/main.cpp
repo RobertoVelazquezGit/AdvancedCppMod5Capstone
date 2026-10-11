@@ -33,6 +33,11 @@
 #include <variant>
 
 #include "FileHandling.h"
+#include "RunConfig.h"
+
+#if FILE_HANDLING_RUN_TESTS
+#include "tests/FileHandlingTests.h"
+#endif
 
 // Base class for all text analyzers
 class TextAnalyzer {
@@ -306,6 +311,17 @@ private:
 };
 
 int main(int argc, char* argv[]) {
+    int failures = 0;
+    bool testsSelected = false;
+#if FILE_HANDLING_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runFileHandlingTests();
+#endif
+    // Add each additional suite in its own macro-controlled block here.
+    if (testsSelected) {
+        return failures == 0 ? 0 : 1;
+    }
+
     try {
         // Parse command line arguments
         if (argc < 2) {
