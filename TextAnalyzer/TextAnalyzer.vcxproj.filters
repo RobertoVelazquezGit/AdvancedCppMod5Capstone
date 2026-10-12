@@ -41,6 +41,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="tests\WordFrequencyAnalyzerTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClInclude Include="tests\WordFrequencyAnalyzerTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
     <ClCompile Include="tests\FileHandlingTests.cpp">
       <Filter>Tests</Filter>
     </ClCompile>

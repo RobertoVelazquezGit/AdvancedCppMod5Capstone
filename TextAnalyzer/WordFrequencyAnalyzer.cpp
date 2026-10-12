@@ -66,40 +66,8 @@ std::string WordFrequencyAnalyzer::cleanWord(const std::string& word) {
     // These operations process bytes, not complete Unicode characters, so they
     // do not provide full punctuation removal or case conversion for UTF-8.
     std::transform(cleaned.begin(), cleaned.end(), cleaned.begin(),
-        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });  // tolower does not modify digits or whitespace, so they remain unchanged.    
 
     // Return the cleaned copy; for example, "HELLO!" becomes "hello".
     return cleaned;
 }
-
-//class WordFrequencyAnalyzer {
-//public:
-//    std::map<std::string, int> analyzeText(const std::string& text) {
-//        std::map<std::string, int> wordCounts;
-//        std::istringstream stream(text);
-//        std::string word;
-//
-//        while (stream >> word) {
-//            // Clean the word (remove punctuation, convert to lowercase)
-//            cleanWord(word);
-//
-//            if (!word.empty()) {
-//                wordCounts[word]++;
-//            }
-//        }
-//
-//        return wordCounts;
-//    }
-//
-//private:
-//    void cleanWord(std::string& word) {
-//        // Remove punctuation
-//        word.erase(std::remove_if(word.begin(), word.end(),
-//            [](char c) { return std::ispunct(c); }),
-//            word.end());
-//
-//        // Convert to lowercase
-//        std::transform(word.begin(), word.end(), word.begin(),
-//            [](char c) { return std::tolower(c); });
-//    }
-//};

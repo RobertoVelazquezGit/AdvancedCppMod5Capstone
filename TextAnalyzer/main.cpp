@@ -41,6 +41,10 @@
 #include "tests/FileHandlingTests.h"
 #endif
 
+#if WORDFREQUENCYANALYZER_RUN_TESTS
+#include "tests/WordFrequencyAnalyzerTest.h"
+#endif
+
 // Readability analyzer implementation
 class ReadabilityAnalyzer : public TextAnalyzer {
 public:
@@ -283,6 +287,11 @@ int main(int argc, char* argv[]) {
     testsSelected = true;
     failures += Tests::runFileHandlingTests();
 #endif
+    /** @brief Runs the word frequency suite when its macro is enabled. */
+#if WORDFREQUENCYANALYZER_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runWordFrequencyAnalyzerTests();
+#endif
     /**
      * @brief Returns the combined test status when at least one suite is selected.
      * @details Add each additional suite in its own macro-controlled block above
@@ -310,5 +319,4 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-}   
-
+}
