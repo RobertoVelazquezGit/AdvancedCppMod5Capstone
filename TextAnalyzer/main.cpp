@@ -34,57 +34,12 @@
 
 #include "FileHandling.h"
 #include "RunConfig.h"
+#include "TextAnalyzer.h"
+#include "WordFrequencyAnalyzer.h"
 
 #if FILE_HANDLING_RUN_TESTS
 #include "tests/FileHandlingTests.h"
 #endif
-
-// Base class for all text analyzers
-class TextAnalyzer {
-public:
-    virtual ~TextAnalyzer() = default;
-
-    /**
-     * Analyzes the given text and returns the result.
-     *
-     * @param text The text to analyze
-     * @return The analysis result as std::any
-     */
-    virtual std::any analyze(const std::string& text) = 0;
-
-    /**
-     * Gets the name of the analyzer.
-     *
-     * @return The name of the analyzer
-     */
-    virtual std::string getName() const = 0;
-};
-
-// Word frequency analyzer implementation
-class WordFrequencyAnalyzer : public TextAnalyzer {
-public:
-    std::any analyze(const std::string& text) override {
-        std::unordered_map<std::string, int> wordCounts;
-
-        // TODO: Implement word frequency analysis
-        // 1. Split the text into words
-        // 2. Clean each word (remove punctuation, convert to lowercase)
-        // 3. Count occurrences of each word
-
-        return wordCounts;
-    }
-
-    std::string getName() const override {
-        return "Word Frequency Analyzer";
-    }
-
-private:
-    // Helper function to clean a word (remove punctuation, convert to lowercase)
-    std::string cleanWord(const std::string& word) {
-        // TODO: Implement word cleaning
-        return word;
-    }
-};
 
 // Readability analyzer implementation
 class ReadabilityAnalyzer : public TextAnalyzer {

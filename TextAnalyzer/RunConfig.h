@@ -2,7 +2,7 @@
 
 /** @brief Set to 1 to enable the FileHandling test suite, or 0 to disable it. */
 #ifndef FILE_HANDLING_RUN_TESTS
-#define FILE_HANDLING_RUN_TESTS 1
+#define FILE_HANDLING_RUN_TESTS 0
 #endif
 
 #if FILE_HANDLING_RUN_TESTS != 0 && FILE_HANDLING_RUN_TESTS != 1

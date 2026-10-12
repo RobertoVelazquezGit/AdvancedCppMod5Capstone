@@ -127,11 +127,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TextAnalyzer.cpp" />
+    <ClCompile Include="WordFrequencyAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FileHandling.cpp" />
     <ClCompile Include="tests\FileHandlingTests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="WordFrequencyAnalyzer.h" />
+    <ClInclude Include="TextAnalyzer.h" />
     <ClInclude Include="FileHandling.h" />
     <ClInclude Include="RunConfig.h" />
     <ClInclude Include="tests\FileHandlingTests.h" />
