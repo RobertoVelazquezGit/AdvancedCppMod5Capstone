@@ -310,14 +310,30 @@ private:
     }
 };
 
+/**
+ * @brief Runs enabled test suites or starts the text analysis application.
+ * @param argc Number of command-line arguments, including the program name.
+ * @param argv Arguments containing the input filename and optional thread count.
+ * @details Test suites are selected at compile time through RunConfig.h macros.
+ * If any suite is selected, all enabled suites run before main returns; normal
+ * application startup and command-line parsing are skipped.
+ * @return Zero if all selected suites succeed or normal startup completes;
+ * one if a selected suite fails, arguments are missing, or startup throws.
+ */
 int main(int argc, char* argv[]) {
-    int failures = 0;
-    bool testsSelected = false;
+    int failures = 0; ///< Sum of suite failure statuses (each suite returns 0 or 1).
+    bool testsSelected = false; ///< True once any compiled-in suite is selected.
+/** @brief Selects and runs the FileHandling suite when its macro is enabled. */
 #if FILE_HANDLING_RUN_TESTS
     testsSelected = true;
     failures += Tests::runFileHandlingTests();
 #endif
-    // Add each additional suite in its own macro-controlled block here.
+    /**
+     * @brief Returns the combined test status when at least one suite is selected.
+     * @details Add each additional suite in its own macro-controlled block above
+     * this check, set testsSelected, and accumulate its 0/1 result in failures.
+     * With no suites selected, execution continues into the application below.
+     */
     if (testsSelected) {
         return failures == 0 ? 0 : 1;
     }

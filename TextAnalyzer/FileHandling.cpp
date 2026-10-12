@@ -49,6 +49,23 @@ namespace FileHandling {
     std::vector<std::string> listFiles(const std::string& directory, const std::string& extension) {
         std::vector<std::string> files;
 
+        /**
+         * @brief Traverses directory entries without building a container of them.
+         * @details std::filesystem::directory_iterator(directory) constructs an
+         * input iterator positioned at the first entry, or at the end if empty.
+         * It visits one directory level; it does not recurse into subdirectories.
+         *
+         * A range-based for loop does not require a container. It requires a
+         * range with begin/end support and suitable iterator operations.
+         * std::filesystem provides free begin() and end() overloads for
+         * directory_iterator, found through argument-dependent lookup (ADL).
+         * begin() returns the starting iterator; end() returns a default-constructed
+         * iterator representing the end of traversal. The loop compares iterators,
+         * dereferences the current one, and increments it to visit the next entry.
+         *
+         * Each entry is a const reference to the current directory_entry, which
+         * can represent a regular file, a directory, or another filesystem object.
+         */
         for (const auto& entry : std::filesystem::directory_iterator(directory)) {
             if (entry.is_regular_file() && entry.path().extension() == extension) {
                 files.push_back(entry.path().string());

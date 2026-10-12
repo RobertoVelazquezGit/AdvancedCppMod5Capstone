@@ -1,3 +1,7 @@
+/**
+ * @file FileHandlingTests.cpp
+ * @brief Implements isolated filesystem tests enabled by FILE_HANDLING_RUN_TESTS.
+ */
 #include "../RunConfig.h"
 
 #if FILE_HANDLING_RUN_TESTS
@@ -18,14 +22,26 @@
 namespace {
     namespace fs = std::filesystem;
 
-    /** @brief Reports a failed expectation in both Debug and Release builds. */
+    /**
+     * @brief Reports a failed expectation in both Debug and Release builds.
+     * @param condition Expectation that must evaluate to true.
+     * @param message Diagnostic used when the expectation fails.
+     * @throws std::runtime_error If condition is false, stopping the current test.
+     */
     void check(bool condition, const std::string& message) {
         if (!condition) {
             throw std::runtime_error(message);
         }
     }
 
-    /** @brief Requires the callable to throw the specified exception type. */
+    /**
+     * @brief Requires the callable to throw the specified exception type.
+     * @tparam Exception Expected exception type; derived types also match.
+     * @tparam Function Callable type accepting no arguments.
+     * @param action Operation expected to throw.
+     * @throws std::runtime_error If action returns without throwing.
+     * @details Other exception types propagate to the test runner unchanged.
+     */
     template <typename Exception, typename Function>
     void expectThrows(Function action) {
         try {
@@ -100,6 +116,10 @@ namespace {
             }
         }
 
+        /**
+         * @brief Provides the owned temporary directory path.
+         * @return Reference valid while this owner exists.
+         */
         const fs::path& path() const { return path_; }
 
         /** @brief Performs checked cleanup before reporting suite success. */
@@ -109,16 +129,48 @@ namespace {
         fs::path path_;
     };
 
-    // ToDo
-
-    /** @brief Creates input independently of the production write function. */
+    /**
+     * @brief Creates a file with known contents to prepare a test fixture.
+     * @details Uses std::ofstream directly so that read tests do not depend on
+     * FileHandling::writeTextFile being implemented correctly.
+     * @param path Destination file path, passed by const reference to avoid copying.
+     * @param content Text to write, passed by const reference to avoid copying.
+     * @throws std::ios_base::failure If opening, writing, or closing the file fails.
+     */
     void createFixture(const fs::path& path, const std::string& content) {
+        /**
+         * @brief Opens the file for text output, creating it if it does not exist.
+         * @details An existing file is truncated: its previous contents are erased.
+         * Parent directories are not created. A missing parent or insufficient
+         * permissions can cause opening to fail and set the stream error state.
+         */
         std::ofstream stream(path);
+
+        /**
+         * @brief Enables exceptions for failed operations and serious I/O errors.
+         * @details failbit indicates an operation failure; badbit indicates a
+         * serious I/O failure. Bitwise OR combines both flags into one mask.
+         * Setting this mask also checks the current state, so an earlier opening
+         * failure causes this call to throw std::ios_base::failure immediately.
+         */
         stream.exceptions(std::ios::failbit | std::ios::badbit);
+
+        /** @brief Writes the text to the stream; detected failures now throw. */
         stream << content;
+
+        /**
+         * @brief Flushes pending output and closes the file explicitly.
+         * @details The destructor would also close the file automatically, but
+         * an explicit close allows closing errors to be reported as exceptions.
+         */
         stream.close();
     }
 
+    /**
+     * @brief Checks that reading preserves text and line breaks.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testRead(const fs::path& directory) {
         const auto file = directory / "input.txt";
         createFixture(file, "Hello\nWorld\n");
@@ -126,11 +178,28 @@ namespace {
               "Reading must preserve text and line breaks");
     }
 
+    /**
+     * @brief Checks file creation, contents, and reading back written text.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testWriteAndRead(const fs::path& directory) {
         const auto file = directory / "output.txt";
         const std::string expected = "Hello\nWorld\n";
         FileHandling::writeTextFile(file.string(), expected);
         std::ifstream stream(file);
+        /**
+         * @brief A failed check stops this test and propagates to the test runner.
+         * @details check() throws std::runtime_error when its condition is false.
+         * There is no local catch, so the remaining statements in testWriteAndRead
+         * are skipped. Constructed local objects, including stream, are destroyed
+         * as the stack unwinds. The exception reaches the catch in
+         * runFileHandlingTests(), which surrounds the test.run(directory) call.
+         * The runner skips ++passed, records the failure, and continues with the
+         * next test. Execution never resumes after the failed check in this test.
+         * This behavior applies to every check() call below; a successful check
+         * returns normally and allows the next statement to execute.
+         */
         check(stream.is_open(), "Writing must create the file");
         const std::string actual{std::istreambuf_iterator<char>(stream),
                                  std::istreambuf_iterator<char>()};
@@ -139,6 +208,11 @@ namespace {
               "Reading back written text must preserve its contents");
     }
 
+    /**
+     * @brief Checks that overwriting removes all previous contents.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testOverwrite(const fs::path& directory) {
         const auto file = directory / "overwrite.txt";
         createFixture(file, "A much longer original message");
@@ -147,6 +221,11 @@ namespace {
               "Overwriting must remove the previous contents completely");
     }
 
+    /**
+     * @brief Checks that writing and reading empty text produces an empty file.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testEmptyFile(const fs::path& directory) {
         const auto file = directory / "empty.txt";
         FileHandling::writeTextFile(file.string(), "");
@@ -156,24 +235,43 @@ namespace {
               "Reading an empty file must return an empty string");
     }
 
+    /**
+     * @brief Checks that reading a missing file throws std::runtime_error.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testMissingFile(const fs::path& directory) {
         expectThrows<std::runtime_error>([&] {
             FileHandling::readTextFile((directory / "missing.txt").string());
         });
     }
 
+    /**
+     * @brief Checks that writing with a missing parent throws std::runtime_error.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testWriteMissingParent(const fs::path& directory) {
         expectThrows<std::runtime_error>([&] {
             FileHandling::writeTextFile((directory / "missing" / "file.txt").string(), "text");
         });
     }
 
+    /**
+     * @brief Checks exact, case-sensitive extension filtering without recursion.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     * @details Only a.txt and b.txt should match. The CSV file, upper.TXT,
+     * the folder named folder.txt, and its nested file must be excluded.
+     * Sorting both vectors makes the comparison independent of listing order.
+     * A second query verifies that an unmatched extension returns no files.
+     */
     void testListFilesByExtension(const fs::path& directory) {
         createFixture(directory / "b.txt", "B");
         createFixture(directory / "a.txt", "A");
         createFixture(directory / "other.csv", "C");
         createFixture(directory / "upper.TXT", "D");
-        fs::create_directory(directory / "folder.txt");
+		fs::create_directory(directory / "folder.txt");  // a folder with a .txt extension  
         createFixture(directory / "folder.txt" / "nested.txt", "Nested");
 
         auto actual = FileHandling::listFiles(directory.string(), ".txt");
@@ -187,11 +285,21 @@ namespace {
               "No matching extensions must produce an empty result");
     }
 
+    /**
+     * @brief Checks that an empty directory produces no matching files.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testEmptyDirectory(const fs::path& directory) {
         check(FileHandling::listFiles(directory.string(), ".txt").empty(),
               "An empty directory must produce an empty result");
     }
 
+    /**
+     * @brief Checks that an empty extension selects only files without an extension.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testEmptyExtension(const fs::path& directory) {
         createFixture(directory / "README", "No extension");
         createFixture(directory / "notes.txt", "With extension");
@@ -200,6 +308,11 @@ namespace {
               "An empty extension must select files without an extension");
     }
 
+    /**
+     * @brief Checks that listing a missing directory throws std::filesystem::filesystem_error.
+     * @param directory Existing, empty directory reserved for this test.
+     * @throws std::runtime_error If an expectation fails.
+     */
     void testMissingDirectory(const fs::path& directory) {
         expectThrows<fs::filesystem_error>([&] {
             FileHandling::listFiles((directory / "missing").string(), ".txt");
@@ -207,9 +320,23 @@ namespace {
     }
 }
 
+/**
+ * @details Runs each registered case in its own numbered subdirectory. An
+ * exception fails that case, is reported, and does not stop subsequent cases.
+ * Setup or explicit cleanup errors also mark the suite as failed. Temporary
+ * directory ownership provides fallback cleanup during stack unwinding.
+ * @return Zero on success, or one if any case, setup, or checked cleanup fails.
+ */
 int Tests::runFileHandlingTests() {
+    /** @brief Associates a diagnostic name with a test function. */
     struct TestCase {
-        const char* name;
+        const char* name; ///< Name displayed in pass/fail diagnostics.
+        /**
+         * @brief Pointer to a function returning void and taking const fs::path&.
+         * @details Invoked as test.run(directory). The argument identifies the
+         * isolated fixture directory. Returning normally indicates success;
+         * throwing an exception reports failure to the surrounding runner.
+         */
         void (*run)(const fs::path&);
     };
     const TestCase cases[]{
