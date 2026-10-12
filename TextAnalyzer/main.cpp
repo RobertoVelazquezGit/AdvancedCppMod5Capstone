@@ -35,6 +35,7 @@
 #include "FileHandling.h"
 #include "RunConfig.h"
 #include "TextAnalyzer.h"
+#include "ReadabilityAnalyzer.h"
 #include "WordFrequencyAnalyzer.h"
 
 #if FILE_HANDLING_RUN_TESTS
@@ -45,47 +46,9 @@
 #include "tests/WordFrequencyAnalyzerTest.h"
 #endif
 
-// Readability analyzer implementation
-class ReadabilityAnalyzer : public TextAnalyzer {
-public:
-    struct ReadabilityMetrics {
-        double fleschReadingEase = 0.0;
-        double fleschKincaidGrade = 0.0;
-        double averageSentenceLength = 0.0;
-        double averageWordLength = 0.0;
-        int totalWords = 0;
-        int totalSentences = 0;
-        int totalSyllables = 0;
-    };
-
-    std::any analyze(const std::string& text) override {
-        ReadabilityMetrics metrics;
-
-        // TODO: Implement readability analysis
-        // 1. Count words, syllables, and sentences
-        // 2. Calculate average sentence and word length
-        // 3. Calculate Flesch Reading Ease and Flesch-Kincaid Grade Level
-
-        return metrics;
-    }
-
-    std::string getName() const override {
-        return "Readability Analyzer";
-    }
-
-private:
-    // Helper function to count syllables in a word
-    int countSyllables(const std::string& word) {
-        // TODO: Implement syllable counting algorithm
-        return 1;
-    }
-
-    // Helper function to count sentences in text
-    int countSentences(const std::string& text) {
-        // TODO: Implement sentence counting algorithm
-        return 1;
-    }
-};
+#if READABILITYANALYZER_RUN_TESTS
+#include "tests/ReadabilityAnalyzerTests.h"
+#endif
 
 // Sentiment analyzer implementation
 class SentimentAnalyzer : public TextAnalyzer {
@@ -291,6 +254,11 @@ int main(int argc, char* argv[]) {
 #if WORDFREQUENCYANALYZER_RUN_TESTS
     testsSelected = true;
     failures += Tests::runWordFrequencyAnalyzerTests();
+#endif
+    /** @brief Runs the readability suite when its macro is enabled. */
+#if READABILITYANALYZER_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runReadabilityAnalyzerTests();
 #endif
     /**
      * @brief Returns the combined test status when at least one suite is selected.

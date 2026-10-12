@@ -16,6 +16,12 @@
     <Filter Include="Tests" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ReadabilityAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="ReadabilityAnalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClCompile Include="TextAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -55,6 +61,14 @@
     </ClInclude>
     <ClInclude Include="RunConfig.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="tests\ReadabilityAnalyzerTests.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClInclude Include="tests\ReadabilityAnalyzerTests.h">
+      <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
