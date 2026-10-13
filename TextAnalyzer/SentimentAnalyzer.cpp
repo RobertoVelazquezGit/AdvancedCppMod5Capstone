@@ -1,3 +1,7 @@
+/**
+ * @file SentimentAnalyzer.cpp
+ * @brief Implements dictionary initialization and normalized sentiment scoring.
+ */
 #include "SentimentAnalyzer.h"
 
 #include <algorithm>

@@ -16,14 +16,25 @@
 #include <string>
 
 namespace {
-    /// @brief Checks an expectation in Debug and Release builds.
+    /**
+     * @brief Checks an expectation in Debug and Release builds.
+     * @param[in] condition Expectation that must evaluate to true.
+     * @param[in] message Diagnostic used when the expectation fails.
+     * @throws std::runtime_error If condition is false.
+     */
     void check(bool condition, const char* message) {
         if (!condition) {
             throw std::runtime_error(message);
         }
     }
 
-    /// @brief Checks a finite floating-point result within absolute tolerance.
+    /**
+     * @brief Checks a finite result with absolute error strictly below 1e-6.
+     * @param[in] actual Computed sentiment score.
+     * @param[in] expected Reference score for the test case.
+     * @param[in] message Diagnostic used when the comparison fails.
+     * @throws std::runtime_error If actual is non-finite or outside tolerance.
+     */
     void checkNear(double actual, double expected, const char* message) {
         check(std::isfinite(actual) && std::abs(actual - expected) < 1e-6, message);
     }
@@ -31,10 +42,11 @@ namespace {
 
 /** @details Reports each failure without stopping the remaining cases. */
 int Tests::runSentimentAnalyzerTests() {
+    /// @brief Input and expected score for a named sentiment check.
     struct TestCase {
-        const char* name;
-        std::string input;
-        double expected;
+        const char* name; ///< Label displayed in the test report.
+        std::string input; ///< Text passed to the analyzer.
+        double expected; ///< Expected normalized sentiment score.
     };
     const TestCase cases[]{
         {"Empty input", "", 0.0},
