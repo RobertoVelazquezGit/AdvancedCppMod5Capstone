@@ -35,3 +35,12 @@
 #if SENTIMENTANALYZER_RUN_TESTS != 0 && SENTIMENTANALYZER_RUN_TESTS != 1
 #error SENTIMENTANALYZER_RUN_TESTS must be 0 or 1
 #endif
+
+/** @brief Set to 1 to enable factory and engine tests, or 0 to disable them. */
+#ifndef FACTORYANALYZER_RUN_TESTS
+#define FACTORYANALYZER_RUN_TESTS 1
+#endif
+
+#if FACTORYANALYZER_RUN_TESTS != 0 && FACTORYANALYZER_RUN_TESTS != 1
+#error FACTORYANALYZER_RUN_TESTS must be 0 or 1
+#endif

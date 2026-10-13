@@ -53,6 +53,10 @@
 #include "tests/SentimentAnalizerTest.h"
 #endif
 
+#if FACTORYANALYZER_RUN_TESTS
+#include "tests/FactoryAnalyzerTests.h"
+#endif
+
 // Thread pool for concurrent processing
 class ThreadPool {
 public:
@@ -212,6 +216,11 @@ int main(int argc, char* argv[]) {
 #if SENTIMENTANALYZER_RUN_TESTS
     testsSelected = true;
     failures += Tests::runSentimentAnalyzerTests();
+#endif
+    /** @brief Runs the factory and engine suite when its macro is enabled. */
+#if FACTORYANALYZER_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runFactoryAnalyzerTests();
 #endif
     /**
      * @brief Returns the combined test status when at least one suite is selected.
