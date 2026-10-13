@@ -16,6 +16,12 @@
     <Filter Include="Tests" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="SentimentAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="SentimentAnalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClCompile Include="ReadabilityAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

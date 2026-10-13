@@ -94,7 +94,7 @@ int Tests::runReadabilityAnalyzerTests() {
     };
 
     for (const auto& test : cases) {
-        run(test.name, [&] {
+		run(test.name, [&] {  // to access the test object by reference in the lambda  
             ReadabilityAnalyzer analyzer;
             std::string input = test.input;
             const auto result = analyzer.analyze(input);

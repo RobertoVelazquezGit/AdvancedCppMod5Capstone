@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="SentimentAnalyzer.cpp" />
     <ClCompile Include="ReadabilityAnalyzer.cpp" />
     <ClCompile Include="TextAnalyzer.cpp" />
     <ClCompile Include="WordFrequencyAnalyzer.cpp" />
@@ -138,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WordFrequencyAnalyzer.h" />
+    <ClInclude Include="SentimentAnalyzer.h" />
     <ClInclude Include="ReadabilityAnalyzer.h" />
     <ClInclude Include="TextAnalyzer.h" />
     <ClInclude Include="FileHandling.h" />

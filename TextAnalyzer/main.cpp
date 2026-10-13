@@ -35,6 +35,7 @@
 #include "FileHandling.h"
 #include "RunConfig.h"
 #include "TextAnalyzer.h"
+#include "SentimentAnalyzer.h"
 #include "ReadabilityAnalyzer.h"
 #include "WordFrequencyAnalyzer.h"
 
@@ -49,35 +50,6 @@
 #if READABILITYANALYZER_RUN_TESTS
 #include "tests/ReadabilityAnalyzerTests.h"
 #endif
-
-// Sentiment analyzer implementation
-class SentimentAnalyzer : public TextAnalyzer {
-public:
-    SentimentAnalyzer() {
-        // TODO: Initialize positive and negative word lists
-        // This could be from files or hardcoded lists
-    }
-
-    std::any analyze(const std::string& text) override {
-        double score = 0.0;
-
-        // TODO: Implement sentiment analysis
-        // 1. Split the text into words
-        // 2. Clean each word
-        // 3. Check if the word is in the positive or negative list
-        // 4. Calculate a sentiment score
-
-        return score;
-    }
-
-    std::string getName() const override {
-        return "Sentiment Analyzer";
-    }
-
-private:
-    std::unordered_set<std::string> positiveWords;
-    std::unordered_set<std::string> negativeWords;
-};
 
 // Factory for creating analyzers
 class AnalyzerFactory {
