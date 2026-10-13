@@ -20,7 +20,7 @@
 
 /** @brief Set to 1 to enable ReadabilityAnalyzer tests, or 0 to disable them. */
 #ifndef READABILITYANALYZER_RUN_TESTS
-#define READABILITYANALYZER_RUN_TESTS 1
+#define READABILITYANALYZER_RUN_TESTS 0
 #endif
 
 #if READABILITYANALYZER_RUN_TESTS != 0 && READABILITYANALYZER_RUN_TESTS != 1

@@ -12,7 +12,8 @@ public:
     // Constructor that loads positive and negative word lists
     SentimentAnalyzer();
 
-    // Analyze sentiment and return a score between -1.0 (negative) and 1.0 (positive)
+    // Returns std::any containing a double: (positive - negative) / matched words.
+    // Range: [-1.0, 1.0]; returns 0.0 when no dictionary words match.
     std::any analyze(const std::string& text) override;
     std::string getName() const override;
 
@@ -20,9 +21,6 @@ private:
     // Store dictionaries of positive and negative words
     std::unordered_set<std::string> positiveWords;
     std::unordered_set<std::string> negativeWords;
-    // Helper methods
-    void loadWordLists();
-    std::vector<std::string> tokenizeText(const std::string& text);
 
 };
 
