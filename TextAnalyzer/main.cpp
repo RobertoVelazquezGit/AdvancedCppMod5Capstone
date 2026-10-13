@@ -35,9 +35,7 @@
 #include "FileHandling.h"
 #include "RunConfig.h"
 #include "TextAnalyzer.h"
-#include "SentimentAnalyzer.h"
-#include "ReadabilityAnalyzer.h"
-#include "WordFrequencyAnalyzer.h"
+#include "FactoryAnalyzer.h"
 
 #if FILE_HANDLING_RUN_TESTS
 #include "tests/FileHandlingTests.h"
@@ -54,32 +52,6 @@
 #if SENTIMENTANALYZER_RUN_TESTS
 #include "tests/SentimentAnalizerTest.h"
 #endif
-
-// Factory for creating analyzers
-class AnalyzerFactory {
-public:
-    /**
-     * Creates an analyzer based on the specified type.
-     *
-     * @param type The type of analyzer to create
-     * @return A unique pointer to the created analyzer
-     * @throws std::runtime_error if the type is not recognized
-     */
-    std::unique_ptr<TextAnalyzer> createAnalyzer(const std::string& type) {
-        // TODO: Implement factory method to create different analyzer types
-        if (type == "frequency") {
-            return std::make_unique<WordFrequencyAnalyzer>();
-        }
-        else if (type == "readability") {
-            return std::make_unique<ReadabilityAnalyzer>();
-        }
-        else if (type == "sentiment") {
-            return std::make_unique<SentimentAnalyzer>();
-        }
-
-        throw std::runtime_error("Unknown analyzer type: " + type);
-    }
-};
 
 // Thread pool for concurrent processing
 class ThreadPool {

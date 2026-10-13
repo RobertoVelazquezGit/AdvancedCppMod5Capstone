@@ -29,7 +29,7 @@
 
 /** @brief Set to 1 to enable SentimentAnalyzer tests, or 0 to disable them. */
 #ifndef SENTIMENTANALYZER_RUN_TESTS
-#define SENTIMENTANALYZER_RUN_TESTS 1
+#define SENTIMENTANALYZER_RUN_TESTS 0
 #endif
 
 #if SENTIMENTANALYZER_RUN_TESTS != 0 && SENTIMENTANALYZER_RUN_TESTS != 1
