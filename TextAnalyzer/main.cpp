@@ -36,6 +36,7 @@
 #include "RunConfig.h"
 #include "TextAnalyzer.h"
 #include "FactoryAnalyzer.h"
+#include "ThreadPool.h"
 
 #if FILE_HANDLING_RUN_TESTS
 #include "tests/FileHandlingTests.h"
@@ -56,55 +57,6 @@
 #if FACTORYANALYZER_RUN_TESTS
 #include "tests/FactoryAnalyzerTests.h"
 #endif
-
-// Thread pool for concurrent processing
-class ThreadPool {
-public:
-    ThreadPool(size_t numThreads) : stop(false) {
-        // TODO: Implement thread pool constructor
-        // 1. Start worker threads
-        // 2. Set up task queue
-    }
-
-    ~ThreadPool() {
-        // TODO: Implement thread pool destructor
-        // 1. Set stop flag
-        // 2. Notify all threads
-        // 3. Join all threads
-    }
-
-    /**
-     * Enqueues a task to be executed by the thread pool.
-     *
-     * @tparam F Function type
-     * @tparam Args Argument types
-     * @param f Function to execute
-     * @param args Arguments to pass to the function
-     * @return A future containing the result of the function
-     */
-    template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
-        using return_type = typename std::invoke_result<F, Args...>::type;
-
-        // TODO: Implement task enqueuing
-        // 1. Create a packaged task with the function and arguments
-        // 2. Get the future from the task
-        // 3. Add the task to the queue
-        // 4. Notify a worker thread
-
-        // Placeholder to make the compiler happy
-        std::promise<return_type> promise;
-        return promise.get_future();
-    }
-
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-
-    std::mutex queueMutex;
-    std::condition_variable condition;
-    bool stop;
-};
 
 // Main class for the text analysis system
 class TextAnalysisSystem {

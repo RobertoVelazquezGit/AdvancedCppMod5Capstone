@@ -133,6 +133,7 @@
     <ClCompile Include="WordFrequencyAnalyzer.cpp" />
     <ClCompile Include="tests\FactoryAnalyzerTests.cpp" />
     <ClCompile Include="FactoryAnalyzer.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FileHandling.cpp" />
     <ClCompile Include="tests\FileHandlingTests.cpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="ReadabilityAnalyzer.h" />
     <ClInclude Include="tests\FactoryAnalyzerTests.h" />
     <ClInclude Include="FactoryAnalyzer.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="TextAnalyzer.h" />
     <ClInclude Include="FileHandling.h" />
     <ClInclude Include="RunConfig.h" />
