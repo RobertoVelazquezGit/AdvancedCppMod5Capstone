@@ -51,6 +51,10 @@
 #include "tests/ReadabilityAnalyzerTests.h"
 #endif
 
+#if SENTIMENTANALYZER_RUN_TESTS
+#include "tests/SentimentAnalizerTest.h"
+#endif
+
 // Factory for creating analyzers
 class AnalyzerFactory {
 public:
@@ -231,6 +235,11 @@ int main(int argc, char* argv[]) {
 #if READABILITYANALYZER_RUN_TESTS
     testsSelected = true;
     failures += Tests::runReadabilityAnalyzerTests();
+#endif
+    /** @brief Runs the sentiment suite when its macro is enabled. */
+#if SENTIMENTANALYZER_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runSentimentAnalyzerTests();
 #endif
     /**
      * @brief Returns the combined test status when at least one suite is selected.

@@ -136,6 +136,7 @@
     <ClCompile Include="tests\FileHandlingTests.cpp" />
     <ClCompile Include="tests\WordFrequencyAnalyzerTest.cpp" />
     <ClCompile Include="tests\ReadabilityAnalyzerTests.cpp" />
+    <ClCompile Include="tests\SentimentAnalizerTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WordFrequencyAnalyzer.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="tests\FileHandlingTests.h" />
     <ClInclude Include="tests\WordFrequencyAnalyzerTest.h" />
     <ClInclude Include="tests\ReadabilityAnalyzerTests.h" />
+    <ClInclude Include="tests\SentimentAnalizerTest.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

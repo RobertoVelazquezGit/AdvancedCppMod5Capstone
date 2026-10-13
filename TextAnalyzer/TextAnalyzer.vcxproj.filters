@@ -77,4 +77,12 @@
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="tests\SentimentAnalizerTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClInclude Include="tests\SentimentAnalizerTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
