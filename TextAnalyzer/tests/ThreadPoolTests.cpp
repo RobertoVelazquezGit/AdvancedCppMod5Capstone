@@ -107,26 +107,54 @@ int Tests::runThreadPoolTests() {
         check(value == 7, "Reference argument was not updated");
     });
 
-    // ToDo
-
     /**
      * @brief Verifies that ordinary lvalue arguments are stored as independent copies.
      * @details A gate delays result production until the caller has changed its
      * original string. The task must still return the value submitted earlier.
      */
     run("Arguments are copied at submission", [] {
+        /** @brief Promise used to send a completion signal without a payload. */
         std::promise<void> release;
+        /**
+         * @brief Copyable std::shared_future<void> observing release's shared state.
+         * @details get_future() obtains a std::future<void>; share() transfers
+         * its state association into a shared_future. Copies of gate observe
+         * the same state, rather than creating independent signals.
+         */
         auto gate = release.get_future().share();
         ThreadPool pool(1);
         std::string input = "original";
+        /**
+         * @brief Submits a task with a by-value gate capture and a copied argument.
+         * @details [gate] copies the shared_future into this lambda. That copy
+         * remains connected to release's shared state. Separately, enqueue
+         * stores a copy of input and later supplies it as the text parameter.
+         * The returned result future carries the string produced by the task;
+         * it is distinct from the gate future used only for synchronization.
+         */
         auto result = pool.enqueue([gate](std::string text) {
+            /**
+             * @brief Waits for the signal or for the five-second timeout to expire.
+             * @details Returns ready when release.set_value() makes the shared
+             * state ready, or timeout if the signal does not arrive in time.
+             * If already signaled, it returns ready immediately; five seconds
+             * is not a mandatory delay. Scheduling may extend the actual wait.
+             */
             if (gate.wait_for(std::chrono::seconds(5)) != std::future_status::ready) {
                 throw std::runtime_error("Gate timed out");
             }
             return text;
         }, input);
+        /** @brief Changes the caller's string after enqueue has stored its copy. */
         input = "changed";
+        /**
+         * @brief Signals the promise associated with the lambda's copied gate.
+         * @details Marks their shared state as ready so the worker can continue.
+         * The signal remains available even if the worker has not started
+         * waiting yet; copying gate does not disconnect it from this promise.
+         */
         release.set_value();
+        /** @brief Retrieves the task result and verifies that the original copy survived. */
         check(result.get() == "original", "Task did not retain its own copy");
     });
 
