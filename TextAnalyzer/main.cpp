@@ -58,6 +58,10 @@
 #include "tests/FactoryAnalyzerTests.h"
 #endif
 
+#if TREADPOOL_RUN_TESTS
+#include "tests/ThreadPoolTests.h"
+#endif
+
 // Main class for the text analysis system
 class TextAnalysisSystem {
 public:
@@ -180,6 +184,11 @@ int main(int argc, char* argv[]) {
      * this check, set testsSelected, and accumulate its 0/1 result in failures.
      * With no suites selected, execution continues into the application below.
      */
+#if TREADPOOL_RUN_TESTS
+    // Run the optional thread pool suite.
+    testsSelected = true;
+    failures += Tests::runThreadPoolTests();
+#endif
     if (testsSelected) {
         return failures == 0 ? 0 : 1;
     }

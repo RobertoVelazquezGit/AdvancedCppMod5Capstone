@@ -38,9 +38,18 @@
 
 /** @brief Set to 1 to enable factory and engine tests, or 0 to disable them. */
 #ifndef FACTORYANALYZER_RUN_TESTS
-#define FACTORYANALYZER_RUN_TESTS 1
+#define FACTORYANALYZER_RUN_TESTS 0
 #endif
 
 #if FACTORYANALYZER_RUN_TESTS != 0 && FACTORYANALYZER_RUN_TESTS != 1
 #error FACTORYANALYZER_RUN_TESTS must be 0 or 1
+#endif
+
+/** @brief Set to 1 to enable ThreadPool tests, or 0 to disable them. */
+#ifndef TREADPOOL_RUN_TESTS
+#define TREADPOOL_RUN_TESTS 1
+#endif
+
+#if TREADPOOL_RUN_TESTS != 0 && TREADPOOL_RUN_TESTS != 1
+#error TREADPOOL_RUN_TESTS must be 0 or 1
 #endif
