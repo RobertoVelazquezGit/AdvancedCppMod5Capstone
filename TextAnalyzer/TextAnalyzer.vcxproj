@@ -158,6 +158,9 @@
     <ClInclude Include="tests\ReadabilityAnalyzerTests.h" />
     <ClInclude Include="tests\SentimentAnalizerTest.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

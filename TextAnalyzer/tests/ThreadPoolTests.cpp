@@ -181,6 +181,14 @@ int Tests::runThreadPoolTests() {
      */
     run("Task exceptions reach futures and worker continues", [] {
         ThreadPool pool(1);
+        /**
+         * @brief Submits a task declared to return int that always throws instead.
+         * @details The trailing return type (-> int) makes enqueue return a
+         * std::future<int>. No integer is actually returned: throwing exits the
+         * lambda exceptionally, so no return statement is needed on this path.
+         * The packaged_task stores the exception in the future's shared state;
+         * result.get() rethrows it in the calling thread.
+         */
         auto result = pool.enqueue([]() -> int { throw std::runtime_error("task failed"); });
         bool caught = false;
         try { result.get(); }
@@ -214,6 +222,8 @@ int Tests::runThreadPoolTests() {
         const bool secondOverlapped = second.get();
         check(firstOverlapped && secondOverlapped, "Workers did not overlap");
     });
+
+    // ToDo
 
     /**
      * @brief Checks completion of accepted work and future lifetime after shutdown.

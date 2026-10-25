@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TextAnalysisSystem" Collapsed="true">
+    <Position X="9.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAgEACAgAAAAAAAAAAAAAAAAIQAAAAIAAAAAAAA=</HashCode>
+      <FileName>main.cpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WordFrequencyAnalyzer" Collapsed="true">
+    <Position X="2.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAEAAAAAgA=</HashCode>
+      <FileName>WordFrequencyAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SentimentAnalyzer" Collapsed="true">
+    <Position X="5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAGAAgAAAA=</HashCode>
+      <FileName>SentimentAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ReadabilityAnalyzer" Collapsed="true">
+    <Position X="7.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABAAAAAACEAAAAAAAAAAAAAAAAAAEAAAAAQA=</HashCode>
+      <FileName>ReadabilityAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AnalyzerFactory" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FactoryAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AnalysisEngine" Collapsed="true">
+    <Position X="9.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAAAAAAAAAAAIAAAAACAAAAAAAA=</HashCode>
+      <FileName>FactoryAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ThreadPool" Collapsed="true">
+    <Position X="11.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAICCAAAAAAAAAAAAAAAAAAAgACgAAABAAAAAQAA=</HashCode>
+      <FileName>ThreadPool.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TextAnalyzer" Collapsed="true">
+    <Position X="3.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAACAAAAAAAAAAAAAAAAAAAEAAAAAAA=</HashCode>
+      <FileName>TextAnalyzer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="`anonymous-namespace'::TrackingAnalyzer" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAACAAAAAAABAACAAAAAAAAEAAAAAAA=</HashCode>
+      <FileName>tests\FactoryAnalyzerTests.cpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="`anonymous-namespace'::TemporaryDirectory" Collapsed="true">
+    <Position X="13.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAAAAAAAACAIAAAAAAAAABEAAgAAAAAAA=</HashCode>
+      <FileName>tests\FileHandlingTests.cpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
