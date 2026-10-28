@@ -273,6 +273,15 @@ int Tests::runThreadPoolTests() {
         }
         // Wait for every producer before inspecting results or propagating errors.
         for (auto& producer : producers) { producer.wait(); }
+        /**
+         * @brief Retrieves producer results and propagates any stored exception.
+         * @details get() waits if needed and rethrows an exception raised by the
+         * producer. The preceding wait() loop ensures every producer has already
+         * finished before an exception can leave this loop; wait() itself does
+         * not rethrow stored exceptions. Without that loop, the first throwing
+         * get() would skip the remaining get() calls. In this test, destruction
+         * of the std::async futures would still wait for pending producers.
+         */
         for (auto& producer : producers) { producer.get(); }
         for (auto& count : counts) { check(count == 1, "Task lost or executed twice"); }
     });
