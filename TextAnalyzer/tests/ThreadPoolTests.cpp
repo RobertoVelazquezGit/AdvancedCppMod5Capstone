@@ -223,8 +223,6 @@ int Tests::runThreadPoolTests() {
         check(firstOverlapped && secondOverlapped, "Workers did not overlap");
     });
 
-    // ToDo
-
     /**
      * @brief Checks completion of accepted work and future lifetime after shutdown.
      * @details Submits 100 tasks, destroys the pool before retrieving results,
