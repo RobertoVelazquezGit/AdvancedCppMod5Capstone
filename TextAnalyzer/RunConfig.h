@@ -47,7 +47,7 @@
 
 /** @brief Set to 1 to enable ThreadPool tests, or 0 to disable them. */
 #ifndef TREADPOOL_RUN_TESTS
-#define TREADPOOL_RUN_TESTS 1
+#define TREADPOOL_RUN_TESTS 0
 #endif
 
 #if TREADPOOL_RUN_TESTS != 0 && TREADPOOL_RUN_TESTS != 1

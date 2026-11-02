@@ -35,8 +35,7 @@
 #include "FileHandling.h"
 #include "RunConfig.h"
 #include "TextAnalyzer.h"
-#include "FactoryAnalyzer.h"
-#include "ThreadPool.h"
+#include "TextAnalysisSystem.h"
 
 #if FILE_HANDLING_RUN_TESTS
 #include "tests/FileHandlingTests.h"
@@ -61,84 +60,6 @@
 #if TREADPOOL_RUN_TESTS
 #include "tests/ThreadPoolTests.h"
 #endif
-
-// Main class for the text analysis system
-class TextAnalysisSystem {
-public:
-    TextAnalysisSystem(size_t numThreads = std::thread::hardware_concurrency())
-        : threadPool(numThreads) {
-        // Initialize analyzers
-        analyzers.push_back(factory.createAnalyzer("frequency"));
-        analyzers.push_back(factory.createAnalyzer("readability"));
-        analyzers.push_back(factory.createAnalyzer("sentiment"));
-    }
-
-    /**
-     * Analyzes a text file with all available analyzers.
-     *
-     * @param filename The path to the file to analyze
-     * @return A map of analyzer name to analysis result
-     */
-    std::map<std::string, std::any> analyzeFile(const std::string& filename) {
-        try {
-            std::string content = FileHandling::readTextFile(filename);
-            return analyzeText(content);
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error analyzing file " << filename << ": " << e.what() << std::endl;
-            return {};
-        }
-    }
-
-    /**
-     * Analyzes a string with all available analyzers.
-     *
-     * @param text The text to analyze
-     * @return A map of analyzer name to analysis result
-     */
-    std::map<std::string, std::any> analyzeText(const std::string& text) {
-        std::map<std::string, std::any> results;
-        std::vector<std::future<std::pair<std::string, std::any>>> futures;
-
-        // TODO: Implement parallel analysis using the thread pool
-        // 1. Submit analysis tasks for each analyzer to the thread pool
-        // 2. Collect results from futures
-        // 3. Store results in the map
-
-        return results;
-    }
-
-    /**
-     * Batch processes multiple files.
-     *
-     * @param directory The directory containing the files to process
-     * @param extension The extension of files to process (e.g., ".txt")
-     * @param outputDir The directory where to save the results
-     */
-    void batchProcess(const std::string& directory, const std::string& extension, const std::string& outputDir) {
-        // TODO: Implement batch processing
-        // 1. List files in the directory
-        // 2. Process each file
-        // 3. Save results to output directory
-    }
-
-private:
-    ThreadPool threadPool;
-    AnalyzerFactory factory;
-    std::vector<std::unique_ptr<TextAnalyzer>> analyzers;
-
-    /**
-     * Generates a formatted report from analysis results.
-     *
-     * @param results The analysis results
-     * @return A formatted string report
-     */
-    std::string generateReport(const std::map<std::string, std::any>& results) {
-        // TODO: Implement report generation
-        // Format the results into a readable report
-        return "Report placeholder";
-    }
-};
 
 /**
  * @brief Runs enabled test suites or starts the text analysis application.

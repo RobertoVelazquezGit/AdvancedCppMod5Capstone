@@ -120,4 +120,12 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TextAnalysisSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="TextAnalysisSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
