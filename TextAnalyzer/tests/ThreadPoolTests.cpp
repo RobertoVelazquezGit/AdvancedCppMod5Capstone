@@ -169,6 +169,17 @@ int Tests::runThreadPoolTests() {
                                    std::move(argument));
         check(!argument, "Argument ownership was not transferred");
         check(*result.get() == 9, "Incorrect move-only result");
+        /**
+         * @brief Exercises a move-only callable with a non-const operator().
+         * @details mutable applies to the lambda, not to p or its pointee:
+         * it makes operator() non-const, allowing by-value captures to change.
+         * Without mutable, the captured unique_ptr cannot be reset or moved
+         * from, but its int pointee can still be modified: const unique_ptr<int>
+         * does not imply const int. Therefore, ++*p does not require mutable.
+         * Returning std::move(p) to transfer ownership would require mutable.
+         * Here mutable deliberately tests enqueue with a non-const operator();
+         * capturing unique_ptr independently makes the lambda move-only.
+         */
         auto callable = [p = std::make_unique<int>(10)]() mutable { return ++*p; };
         check(pool.enqueue(std::move(callable)).get() == 11,
               "Move-only mutable callable failed");

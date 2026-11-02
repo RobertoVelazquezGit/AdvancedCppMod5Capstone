@@ -1,15 +1,25 @@
 /**
  * @file TextAnalysisSystem.cpp
- * @brief Implements system initialization and the existing analysis scaffolding.
+ * @brief Implements parallel text analysis and English report formatting.
+ * @details File analysis delegates to the thread-pool-backed text analysis path.
+ * Batch processing saves one formatted report per matching input file.
  */
 #include "TextAnalysisSystem.h"
 #include "FileHandling.h"
+#include "ReadabilityAnalyzer.h"
 
 #include <exception>
 #include <future>
+#include <filesystem>
+#include <stdexcept>
 #include <iostream>
+#include <iomanip>
+#include <locale>
+#include <sstream>
+#include <unordered_map>
 #include <utility>
 
+/** @brief Initializes the worker pool and takes ownership of the default analyzers. */
 TextAnalysisSystem::TextAnalysisSystem(size_t numThreads)
     : threadPool(numThreads) {
     // Initialize analyzers
@@ -18,6 +28,7 @@ TextAnalysisSystem::TextAnalysisSystem(size_t numThreads)
     analyzers.push_back(factory.createAnalyzer("sentiment"));
 }
 
+/** @brief Reads and analyzes a file, reporting standard exceptions to standard error. */
 std::map<std::string, std::any> TextAnalysisSystem::analyzeFile(const std::string& filename) {
     try {
         std::string content = FileHandling::readTextFile(filename);
@@ -29,6 +40,7 @@ std::map<std::string, std::any> TextAnalysisSystem::analyzeFile(const std::strin
     }
 }
 
+/** @brief Runs analyzer tasks and waits for accepted work before leaving this scope. */
 std::map<std::string, std::any> TextAnalysisSystem::analyzeText(const std::string& text) {
     std::map<std::string, std::any> results;
     std::vector<std::future<std::pair<std::string, std::any>>> futures;
@@ -89,16 +101,116 @@ std::map<std::string, std::any> TextAnalysisSystem::analyzeText(const std::strin
     return results;
 }
 
+/**
+ * @brief Analyzes matching files and saves a separate report for each one.
+ * @details Files are processed on the calling thread; analyzeText submits the
+ * individual analyzers to the pool. Enqueuing analyzeFile in that same pool
+ * could deadlock when workers wait for nested tasks with no free worker.
+ */
 void TextAnalysisSystem::batchProcess(const std::string& directory, const std::string& extension, const std::string& outputDir) {
-    // TODO: Implement batch processing
-    // 1. List files in the directory
-    // 2. Process each file
-    // 3. Save results to output directory
+    namespace fs = std::filesystem;
+
+    // Snapshot the input list before creating any reports.
+    // Setup errors affect the entire batch and propagate to the caller.
+    const auto files = FileHandling::listFiles(directory, extension);
+    const fs::path outputDirectory(outputDir);
+    fs::create_directories(outputDirectory);
+    if (fs::equivalent(fs::path(directory), outputDirectory)) {
+        throw std::invalid_argument("Input and output directories must be different");
+    }
+
+    for (const auto& filename : files) {
+        try {
+            const auto results = analyzeFile(filename);
+            // analyzeFile already reports standard exceptions and returns an
+            // empty map on failure. An empty input file still has analyzer results.
+            if (results.empty()) {
+                continue;
+            }
+
+            // path::stem removes the last extension; operator/ joins path components.
+            // Example: input/document.txt becomes output/document_report.txt.
+            const fs::path reportPath =
+                outputDirectory / (fs::path(filename).stem().string() + "_report.txt");
+            const auto report = generateReport(results);
+            FileHandling::writeTextFile(reportPath.string(), report);
+        }
+        catch (const std::exception& error) {
+            // A failed report must not prevent processing the remaining files.
+            std::cerr << "Error processing file " << filename << ": "
+                      << error.what() << std::endl;
+        }
+    }
 }
 
+/** @brief Builds report sections from the named, typed analyzer results. */
 std::string TextAnalysisSystem::generateReport(const std::map<std::string, std::any>& results) {
-    // TODO: Implement report generation
-    // Format the results into a readable report
-    return "Report placeholder";
+    std::ostringstream report;
+    /**
+     * @brief Accumulates the report using locale-independent numeric formatting.
+     * @details fixed and setprecision(2) affect floating-point values only;
+     * word, sentence, and syllable counts retain integer formatting.
+     */
+    report.imbue(std::locale::classic());
+    report << std::fixed << std::setprecision(2);
+    report << "Text Analysis Report\n====================\n";
+
+    if (results.empty()) {
+        report << "No analysis results available.\n";
+        return report.str();
+    }
+
+    /**
+     * @brief Uses a structured binding, available in C++17 and later.
+     * @details Each map element is a pair<const std::string, std::any>.
+     * [name, result] names its first (key) and second (value) members.
+     * const auto& accesses the element without copying it and prevents
+     * modification through these names. Before C++17, use entry.first
+     * and entry.second inside a loop over const auto& entry instead.
+     */
+    for (const auto& [name, result] : results) {
+        report << "\n" << name << "\n";
+        if (name == "Word Frequency Analyzer") {
+            /**
+             * @brief Borrows the frequency map stored in the result.
+             * @details any_cast requires the exact payload type and throws
+             * std::bad_any_cast on mismatch. The const reference avoids a copy
+             * during extraction and remains valid while results is unchanged.
+             */
+            const auto& frequencies =
+                std::any_cast<const std::unordered_map<std::string, int>&>(result);
+            /**
+             * @brief Copies counts into an ordered map for reproducible output.
+             * @details This sorting copy is separate from the reference-based
+             * extraction above; the original unordered_map remains unchanged.
+             */
+            const std::map<std::string, int> sorted(frequencies.begin(), frequencies.end());
+            if (sorted.empty()) {
+                report << "No words found.\n";
+            }
+            for (const auto& [word, count] : sorted) {
+                report << "  " << word << ": " << count << '\n';
+            }
+        }
+        else if (name == "Readability Analyzer") {
+            const auto& metrics =
+                std::any_cast<const ReadabilityAnalyzer::ReadabilityMetrics&>(result);
+            report << "Total words: " << metrics.totalWords << '\n'
+                   << "Total sentences: " << metrics.totalSentences << '\n'
+                   << "Total syllables: " << metrics.totalSyllables << '\n'
+                   << "Average sentence length (words): " << metrics.averageSentenceLength << '\n'
+                   << "Average word length (syllables): " << metrics.averageWordLength << '\n'
+                   << "Flesch reading ease: " << metrics.fleschReadingEase << '\n'
+                   << "Flesch-Kincaid grade: " << metrics.fleschKincaidGrade << '\n';
+        }
+        else if (name == "Sentiment Analyzer") {
+            const double score = std::any_cast<double>(result);
+            report << "Sentiment score [-1, 1]: " << score << '\n';
+        }
+        else {
+            report << "Report formatting is not supported for this analyzer.\n";
+        }
+    }
+    return report.str();
 }
 

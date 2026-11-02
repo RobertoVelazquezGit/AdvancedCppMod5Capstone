@@ -18,8 +18,9 @@
 
 /**
  * @brief Owns a thread pool and the frequency, readability, and sentiment analyzers.
- * @details Runs the analyzers through the thread pool. Batch processing and
- * report generation remain unfinished.
+ * @details Runs the three analyzers through the thread pool and collects typed
+ * results in std::any. A private formatter produces English text reports.
+ * Batch processing writes one report per matching file to a separate directory.
  */
 class TextAnalysisSystem {
 public:
@@ -38,7 +39,9 @@ public:
      * @param filename Path to the input text file.
      * @return Results keyed by analyzer name, or an empty map after catching
      * a standard exception.
-     * @details Caught standard exceptions are reported to standard error.
+     * @details Caught standard exceptions from reading or analysis are reported
+     * to standard error. Non-standard exceptions propagate to the caller.
+     * An empty input file is analyzed normally; it is not treated as a failure.
      */
     std::map<std::string, std::any> analyzeFile(const std::string& filename);
 
@@ -55,11 +58,21 @@ public:
     std::map<std::string, std::any> analyzeText(const std::string& text);
 
     /**
-     * @brief Provides the entry point for batch file processing.
-     * @param directory Input directory; currently unused.
-     * @param extension File extension filter, such as ".txt"; currently unused.
-     * @param outputDir Output directory for results; currently unused.
-     * @note This placeholder currently performs no operations.
+     * @brief Analyzes matching files and writes one English report per file.
+     * @param[in] directory Input directory, scanned without recursion.
+     * @param[in] extension Exact, case-sensitive extension including the dot,
+     * e.g. ".txt". An empty string selects files without an extension.
+     * @param[in] outputDir Separate output directory, created with any missing parents.
+     * @details Processes files sequentially while each file's analyzers use the
+     * thread pool. Reports use the input stem followed by "_report.txt";
+     * existing report files are overwritten. Input order is unspecified.
+     * An empty match list produces no reports but still prepares the output directory.
+     * Standard exceptions for individual files are logged and processing continues;
+     * an empty result from analyzeFile is skipped. Non-standard exceptions propagate.
+     * @throws std::filesystem::filesystem_error If input listing, output directory
+     * creation, or directory equivalence checking fails.
+     * @throws std::invalid_argument If input and output refer to the same directory.
+     * @note Uses FileHandling's read/write error checks. Does not return a success count.
      */
     void batchProcess(const std::string& directory, const std::string& extension, const std::string& outputDir);
 
@@ -69,10 +82,25 @@ private:
     std::vector<std::unique_ptr<TextAnalyzer>> analyzers; ///< Exclusively owned analyzers.
 
     /**
-     * @brief Provides the placeholder for formatting analysis results.
-     * @param results Results to format; currently unused.
-     * @return The literal string "Report placeholder".
-     * @note Report formatting is not implemented yet.
+     * @brief Formats available analysis results into an English text report.
+     * @param[in] results Results keyed by the exact analyzer display names.
+     * @return A report headed "Text Analysis Report", with one section per entry.
+     * @details Recognized names and their required std::any payload types are:
+     * - "Word Frequency Analyzer": std::unordered_map<std::string, int>.
+     * - "Readability Analyzer": ReadabilityAnalyzer::ReadabilityMetrics.
+     * - "Sentiment Analyzer": double.
+     *
+     * Sections follow the input map's key order. Word counts are listed in
+     * lexicographic word order, and an empty frequency map prints "No words found.".
+     * Readability includes all seven metrics; average word length is measured
+     * in syllables, not characters. Floating-point values use fixed notation
+     * with two decimal places and the classic locale's decimal point.
+     *
+     * An empty results map prints "No analysis results available." after the
+     * heading. Missing analyzers are omitted. Unknown names receive an
+     * unsupported-format message without inspecting their payload.
+     * @throws std::bad_any_cast If a recognized name has a missing or wrong payload type.
+     * @note Does not modify results, run analyzers, write files, or print to the console.
      */
     std::string generateReport(const std::map<std::string, std::any>& results);
 };
