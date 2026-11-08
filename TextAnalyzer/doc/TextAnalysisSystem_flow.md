@@ -1,54 +1,54 @@
-# Flujo de TextAnalysisSystem
+# TextAnalysisSystem Flow
 
-Los diagramas usan Mermaid: se pueden visualizar en un visor Markdown compatible con Mermaid. El documento describe la implementación actual del proyecto.
+The diagrams use Mermaid and can be displayed in a Markdown viewer with Mermaid support. This document describes the project's current implementation.
 
-## 1. Qué ejecuta actualmente `main`
+## 1. What `main` currently executes
 
-Si hay suites de pruebas activadas mediante `RunConfig.h`, `main` las ejecuta y termina. Si no hay pruebas activadas, lee los argumentos y construye `TextAnalysisSystem`.
+If test suites are enabled through `RunConfig.h`, `main` runs them and exits. Otherwise, it reads the arguments and constructs `TextAnalysisSystem`.
 
-**Actualmente `main` todavía no llama a `analyzeFile`, `analyzeText` ni `batchProcess`.** Aunque lee `filename`, no lo utiliza después para analizarlo. Los flujos de análisis de este documento se ejecutan cuando un cliente llama explícitamente a esos métodos.
+**Currently, `main` does not yet call `analyzeFile`, `analyzeText`, or `batchProcess`.** Although it reads `filename`, it does not subsequently use it for analysis. The analysis flows below execute when a caller explicitly invokes these methods.
 
 ```mermaid
 flowchart TD
-    A[main] --> B{¿Hay pruebas activadas?}
-    B -->|Sí| C[Ejecutar suites y devolver su estado]
-    B -->|No| D[Leer filename y numThreads]
-    D --> E[Construir TextAnalysisSystem]
-    E --> F[Crear trabajadores del ThreadPool]
-    F --> G[Crear los tres analizadores mediante la fábrica]
-    G --> H[Fin del ámbito: destruir el sistema]
+    A[main] --> B{Are tests enabled?}
+    B -->|Yes| C[Run suites and return their status]
+    B -->|No| D[Read filename and numThreads]
+    D --> E[Construct TextAnalysisSystem]
+    E --> F[Create ThreadPool workers]
+    F --> G[Create the three analyzers through the factory]
+    G --> H[End of scope: destroy the system]
 ```
 
-El constructor guarda los analizadores en un `vector<unique_ptr<TextAnalyzer>>`. Es el propietario de esos objetos. La fábrica crea un analizador de frecuencia, otro de legibilidad y otro de sentimiento.
+The constructor stores the analyzers in a `vector<unique_ptr<TextAnalyzer>>`, which owns those objects. The factory creates a word frequency analyzer, a readability analyzer, and a sentiment analyzer.
 
-## 2. Flujo de procesamiento por lotes
+## 2. Batch processing flow
 
 ```mermaid
 flowchart TD
-    A[Cliente llama a batchProcess] --> B[listFiles: obtener archivos por extensión]
-    B --> C[Crear directorio de salida y comprobar que es distinto]
-    C --> D{¿Quedan archivos?}
-    D -->|Sí| E[analyzeFile: leer contenido]
-    E --> F[analyzeText: ejecutar analizadores y recoger resultados]
-    F --> G{¿Mapa de resultados vacío?}
-    G -->|Sí| D
-    G -->|No| H[generateReport: construir texto del informe]
-    H --> I[writeTextFile: guardar nombre_report.txt]
+    A[Caller invokes batchProcess] --> B[listFiles: select files by extension]
+    B --> C[Create output directory and check that it differs from input]
+    C --> D{Any files left?}
+    D -->|Yes| E[analyzeFile: read contents]
+    E --> F[analyzeText: run analyzers and collect results]
+    F --> G{Is the results map empty?}
+    G -->|Yes| D
+    G -->|No| H[generateReport: build report text]
+    H --> I[writeTextFile: save name_report.txt]
     I --> D
-    D -->|No| J[Retornar al cliente]
+    D -->|No| J[Return to caller]
 ```
 
-Los archivos se procesan **uno detrás de otro**. Dentro de cada archivo, los analizadores pueden ejecutarse en paralelo, según los trabajadores disponibles.
+Files are processed **one at a time**. Within each file, the analyzers can run in parallel, depending on the available workers.
 
-Los errores de preparación del lote se propagan. `analyzeFile` captura excepciones estándar, informa del error y devuelve un mapa vacío; `batchProcess` omite ese archivo. Si falla la generación o escritura de un informe con una excepción estándar, informa del error y continúa con el siguiente archivo.
+Batch setup errors propagate to the caller. `analyzeFile` catches standard exceptions, reports the error, and returns an empty map; `batchProcess` skips that file. If generating or writing a report throws a standard exception, the error is reported and processing continues with the next file.
 
-## 3. Los dos bucles de `analyzeText`
+## 3. The two loops in `analyzeText`
 
-Tu interpretación es correcta: `analyzeText` envía una tarea por analizador al pool y después recoge los resultados mediante los futuros.
+`analyzeText` submits one task per analyzer to the pool, then collects their results through futures.
 
-### Primer bucle: enviar tareas
+### First loop: submit tasks
 
-Código simplificado de la implementación:
+Simplified implementation code:
 
 ```cpp
 for (const auto& analyzer : analyzers) {
@@ -58,16 +58,16 @@ for (const auto& analyzer : analyzers) {
 }
 ```
 
-En cada iteración:
+Each iteration performs these steps:
 
-1. Se construye una lambda que captura un puntero al analizador y una referencia al texto.
-2. `enqueue` prepara la tarea y la coloca en la cola del pool.
-3. `enqueue` devuelve un `future` asociado a esa tarea.
-4. Ese `future` se mueve al vector `futures`.
+1. Construct a lambda that captures a pointer to the analyzer and a reference to the text.
+2. `enqueue` prepares the task and places it in the pool's queue.
+3. `enqueue` returns a `future` associated with that task.
+4. The `future` is moved into the `futures` vector.
 
-El puntero no transfiere la propiedad del analizador. El texto tampoco se copia para cada tarea. Los trabajadores pueden comenzar a ejecutar tareas mientras el hilo llamante todavía está enviando las siguientes.
+The pointer does not transfer ownership of the analyzer. The text is not copied for each task either. Workers may start executing tasks while the calling thread is still submitting the remaining ones.
 
-### Segundo bucle: recoger resultados
+### Second loop: collect results
 
 ```cpp
 for (auto& future : futures) {
@@ -76,84 +76,84 @@ for (auto& future : futures) {
 }
 ```
 
-`get()` espera si la tarea todavía no ha terminado. Si ya terminó, obtiene su resultado sin esperar a que se ejecute de nuevo. Si la tarea lanzó una excepción, `get()` la relanza en el hilo llamante.
+`get()` waits if the task has not finished yet. If it has already finished, `get()` retrieves its result without executing it again. If the task threw an exception, `get()` rethrows it in the calling thread.
 
-La tarea devuelve un `pair<string, any>`: nombre del analizador y resultado. El segundo bucle mueve ambos miembros al mapa `results`.
+The task returns a `pair<string, any>` containing the analyzer's name and result. The second loop moves both members into the `results` map.
 
-**El vector guarda futuros, no directamente los resultados finales.** Cada futuro permite acceder al estado compartido donde la tarea publica un resultado o una excepción. El mapa es el contenedor de resultados que devuelve `analyzeText`.
+**The vector stores futures, rather than the final results directly.** Each future provides access to the shared state where its task publishes a result or an exception. The map is the result container returned by `analyzeText`.
 
 ```mermaid
 flowchart LR
-    A[analyzers: tres objetos] --> B[Primer bucle: enqueue por analizador]
-    B --> C[Cola de tareas del ThreadPool]
-    B --> D[Vector de tres futures]
-    C --> E[Trabajadores ejecutan las lambdas]
-    E --> F[Estados compartidos: resultado o excepción]
-    D --> G[Segundo bucle: future.get]
+    A[analyzers: three objects] --> B[First loop: enqueue each analyzer]
+    B --> C[ThreadPool task queue]
+    B --> D[Vector of three futures]
+    C --> E[Workers execute the lambdas]
+    E --> F[Shared states: result or exception]
+    D --> G[Second loop: future.get]
     F --> G
-    G --> H[Mapa results: nombre y std::any]
-    H --> I[Retorno de analyzeText]
+    G --> H[results map: name and std::any]
+    H --> I[Return from analyzeText]
 ```
 
-Se envían todas las tareas antes de empezar el segundo bucle. Si hiciéramos `enqueue(...).get()` en cada iteración del primer bucle, esperaríamos a cada analizador antes de enviar el siguiente y perderíamos el solapamiento entre ellos.
+All tasks are submitted before the second loop begins. Calling `enqueue(...).get()` in each iteration of the first loop would wait for each analyzer before submitting the next one, preventing their execution from overlapping.
 
-## 4. Diagrama de secuencia: tareas, trabajadores y futuros
+## 4. Sequence diagram: tasks, workers, and futures
 
-El diagrama representa una tarea; el envío se repite para cada analizador. El pool no asigna permanentemente un trabajador a un analizador.
+This diagram represents one task; submission is repeated for each analyzer. The pool does not permanently assign a worker to an analyzer.
 
 ```mermaid
 sequenceDiagram
-    participant C as Hilo llamante: analyzeText
+    participant C as Calling thread: analyzeText
     participant P as ThreadPool
-    participant W as Trabajador disponible
-    participant A as Analizador concreto
-    participant S as Estado compartido
+    participant W as Available worker
+    participant A as Concrete analyzer
+    participant S as Shared state
     C->>P: enqueue(lambda)
-    P->>P: Crear packaged_task y obtener future
-    P->>P: Encolar wrapper y notificar a un trabajador
-    P-->>C: future asociado a la tarea
-    C->>C: Guardar future en el vector
-    Note over C,P: Repetir el envío para los tres analizadores
-    W->>P: Extraer tarea con el mutex adquirido
-    W->>W: Liberar mutex y ejecutar tarea
-    W->>A: analyze(text), dentro de la lambda
-    A-->>W: Resultado concreto almacenado en std::any
-    W->>S: packaged_task publica el par nombre/resultado
-    Note over C,S: Una excepción se almacena en lugar del resultado
-    C->>S: future.get() en el segundo bucle
-    S-->>C: Par nombre/resultado, o relanzamiento de excepción
-    C->>C: Mover el par al mapa results
+    P->>P: Create packaged_task and obtain future
+    P->>P: Enqueue wrapper and notify a worker
+    P-->>C: Future associated with the task
+    C->>C: Store future in the vector
+    Note over C,P: Repeat submission for all three analyzers
+    W->>P: Remove task while holding the mutex
+    W->>W: Release mutex and execute task
+    W->>A: analyze(text), inside the lambda
+    A-->>W: Concrete result stored in std::any
+    W->>S: packaged_task publishes the name/result pair
+    Note over C,S: An exception is stored instead if the task throws
+    C->>S: future.get() in the second loop
+    S-->>C: Name/result pair, or rethrown exception
+    C->>C: Move the pair into the results map
 ```
 
-La ejecución real puede intercalarse de otras formas: un trabajador puede terminar antes de que el llamante guarde el futuro, o `get()` puede empezar a esperar antes de que termine la tarea. El estado compartido coordina ambos casos.
+Actual execution can interleave differently: a worker may finish before the caller stores the future, or `get()` may start waiting before the task finishes. The shared state coordinates both cases.
 
-## 5. Qué significa el paralelismo aquí
+## 5. What parallelism means here
 
-Con tres trabajadores disponibles, los tres analizadores pueden solaparse. Con uno solo, se ejecutan uno detrás de otro, pero el mismo código funciona.
+With three available workers, all three analyzers can overlap. With only one worker, they execute one after another, but the same code still works.
 
-Los futuros se recorren en orden de envío, no en orden de finalización. Si el analizador de frecuencia tarda más, el primer `get()` puede esperar mientras legibilidad y sentimiento ya han terminado. Sus resultados quedan disponibles en sus respectivos estados compartidos.
+Futures are visited in submission order, not completion order. If the frequency analyzer takes longer, the first `get()` may wait while readability and sentiment have already finished. Their results remain available in their respective shared states.
 
-`batchProcess` no envía `analyzeFile` al mismo pool: esa función llama a `analyzeText`, que envía nuevas tareas y espera por ellas. Con un trabajador, la tarea exterior lo ocuparía esperando unas tareas interiores que no pueden ejecutarse. Por eso el llamante coordina los archivos y el pool ejecuta los analizadores.
+`batchProcess` does not submit `analyzeFile` to the same pool: that function calls `analyzeText`, which submits new tasks and waits for them. With one worker, the outer task would occupy it while waiting for inner tasks that cannot run. This is why the caller coordinates the files and the pool executes the analyzers.
 
-## 6. Tipos que circulan por el sistema
+## 6. Types flowing through the system
 
-| Objeto | Tipo o contenido | Función |
+| Object | Type or contents | Purpose |
 |---|---|---|
-| `analyzers` | `vector<unique_ptr<TextAnalyzer>>` | Poseer los tres analizadores |
-| Tarea enviada | Lambda que devuelve `pair<string, any>` | Ejecutar un analizador y asociar su nombre |
-| `futures` | `vector<future<pair<string, any>>>` | Esperar y recuperar cada resultado |
-| `results` | `map<string, any>` | Reunir los resultados por nombre |
-| Resultado de frecuencia | `unordered_map<string, int>` dentro de `any` | Contar las palabras |
-| Resultado de legibilidad | `ReadabilityAnalyzer::ReadabilityMetrics` dentro de `any` | Guardar las siete métricas |
-| Resultado de sentimiento | `double` dentro de `any` | Guardar la puntuación |
-| Informe | `string` | Presentar los resultados como texto |
+| `analyzers` | `vector<unique_ptr<TextAnalyzer>>` | Own the three analyzers |
+| Submitted task | Lambda returning `pair<string, any>` | Run an analyzer and associate its name |
+| `futures` | `vector<future<pair<string, any>>>` | Wait for and retrieve each result |
+| `results` | `map<string, any>` | Collect results by name |
+| Frequency result | `unordered_map<string, int>` inside `any` | Count words |
+| Readability result | `ReadabilityAnalyzer::ReadabilityMetrics` inside `any` | Store the seven metrics |
+| Sentiment result | `double` inside `any` | Store the score |
+| Report | `string` | Present results as text |
 
-`std::any` permite almacenar tipos distintos detrás de un mismo tipo de contenedor. `generateReport` utiliza `std::any_cast` con el tipo esperado para cada nombre de analizador.
+`std::any` allows different payload types to be stored through a single container value type. `generateReport` uses `std::any_cast` with the expected type for each analyzer name.
 
-## 7. Vida de los datos y excepciones
+## 7. Data lifetime and exceptions
 
-Las tareas toman prestados el texto y los analizadores. Por ello, `analyzeText` espera a las tareas aceptadas antes de salir, incluso si se produce una excepción durante el envío o la recogida. En su bloque `catch`, espera mediante `wait()` en los futuros que siguen siendo válidos y después relanza la excepción original.
+Tasks borrow the text and the analyzers. Therefore, `analyzeText` waits for accepted tasks before leaving, even if an exception occurs during submission or result collection. Its `catch` block calls `wait()` on futures that are still valid, then rethrows the original exception.
 
-`wait()` solo espera; `get()` obtiene el resultado o relanza su excepción. Después de llamar a `get()`, ese futuro ya no es válido, incluso si `get()` lanzó una excepción. Esto explica la comprobación `future.valid()` dentro del bloque de limpieza.
+`wait()` only waits; `get()` retrieves the result or rethrows its exception. After `get()` is called, that future is no longer valid, even if `get()` threw an exception. This explains the `future.valid()` check in the cleanup block.
 
-El llamante debe mantener vivo el sistema y no modificar el texto durante el análisis. Al finalizar una llamada normal o excepcional a `analyzeText`, sus tareas aceptadas ya no están usando esos datos.
+The caller must keep the system alive and must not modify the text during analysis. When `analyzeText` returns or propagates an exception, its accepted tasks are no longer using those borrowed objects.
