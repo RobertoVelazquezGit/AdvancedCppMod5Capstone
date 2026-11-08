@@ -166,4 +166,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ClCompile Include="tests\TextAnalysisSystemTests.cpp" />
+    <ClInclude Include="tests\TextAnalysisSystemTests.h" />
+  </ItemGroup>
 </Project>

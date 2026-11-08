@@ -37,6 +37,10 @@
 #include "TextAnalyzer.h"
 #include "TextAnalysisSystem.h"
 
+#if TEXTANALYSISSYSTEM_RUN_TESTS
+#include "tests/TextAnalysisSystemTests.h"
+#endif
+
 #if FILE_HANDLING_RUN_TESTS
 #include "tests/FileHandlingTests.h"
 #endif
@@ -109,6 +113,11 @@ int main(int argc, char* argv[]) {
     // Run the optional thread pool suite.
     testsSelected = true;
     failures += Tests::runThreadPoolTests();
+#endif
+    /** @brief Runs the system integration suite when enabled. */
+#if TEXTANALYSISSYSTEM_RUN_TESTS
+    testsSelected = true;
+    failures += Tests::runTextAnalysisSystemTests();
 #endif
     if (testsSelected) {
         return failures == 0 ? 0 : 1;

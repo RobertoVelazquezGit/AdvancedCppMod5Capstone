@@ -53,3 +53,11 @@
 #if TREADPOOL_RUN_TESTS != 0 && TREADPOOL_RUN_TESTS != 1
 #error TREADPOOL_RUN_TESTS must be 0 or 1
 #endif
+/** @brief Set to 1 to enable TextAnalysisSystem integration tests, or 0 to disable. */
+#ifndef TEXTANALYSISSYSTEM_RUN_TESTS
+#define TEXTANALYSISSYSTEM_RUN_TESTS 1
+#endif
+
+#if TEXTANALYSISSYSTEM_RUN_TESTS != 0 && TEXTANALYSISSYSTEM_RUN_TESTS != 1
+#error TEXTANALYSISSYSTEM_RUN_TESTS must be 0 or 1
+#endif
