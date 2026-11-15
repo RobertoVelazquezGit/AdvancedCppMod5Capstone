@@ -135,6 +135,12 @@ int main(int argc, char* argv[]) {
 
         // Create and run the text analysis system
         TextAnalysisSystem system(numThreads);
+        const auto results = system.analyzeFile(filename);
+        if (results.empty()) {
+            return 1; // analyzeFile has already reported the failure.
+        }
+        /** @brief Prints the formatted frequency, readability, and sentiment results. */
+        std::cout << system.generateReport(results);
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

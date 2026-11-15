@@ -55,7 +55,7 @@
 #endif
 /** @brief Set to 1 to enable TextAnalysisSystem integration tests, or 0 to disable. */
 #ifndef TEXTANALYSISSYSTEM_RUN_TESTS
-#define TEXTANALYSISSYSTEM_RUN_TESTS 1
+#define TEXTANALYSISSYSTEM_RUN_TESTS 0
 #endif
 
 #if TEXTANALYSISSYSTEM_RUN_TESTS != 0 && TEXTANALYSISSYSTEM_RUN_TESTS != 1

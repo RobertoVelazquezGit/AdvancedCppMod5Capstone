@@ -19,7 +19,7 @@
 /**
  * @brief Owns a thread pool and the frequency, readability, and sentiment analyzers.
  * @details Runs the three analyzers through the thread pool and collects typed
- * results in std::any. A private formatter produces English text reports.
+ * results in std::any. A public formatter produces English text reports.
  * Batch processing writes one report per matching file to a separate directory.
  */
 class TextAnalysisSystem {
@@ -76,11 +76,6 @@ public:
      */
     void batchProcess(const std::string& directory, const std::string& extension, const std::string& outputDir);
 
-private:
-    ThreadPool threadPool; ///< Worker pool used for parallel analysis.
-    AnalyzerFactory factory; ///< Factory used to create the default analyzers.
-    std::vector<std::unique_ptr<TextAnalyzer>> analyzers; ///< Exclusively owned analyzers.
-
     /**
      * @brief Formats available analysis results into an English text report.
      * @param[in] results Results keyed by the exact analyzer display names.
@@ -103,4 +98,8 @@ private:
      * @note Does not modify results, run analyzers, write files, or print to the console.
      */
     std::string generateReport(const std::map<std::string, std::any>& results);
+private:
+    ThreadPool threadPool; ///< Worker pool used for parallel analysis.
+    AnalyzerFactory factory; ///< Factory used to create the default analyzers.
+    std::vector<std::unique_ptr<TextAnalyzer>> analyzers; ///< Exclusively owned analyzers.
 };

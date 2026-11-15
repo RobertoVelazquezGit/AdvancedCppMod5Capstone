@@ -1,0 +1,5 @@
+Learning C++ is a great adventure. I love building useful programs.
+Good tests make me happy. Clear reports are excellent and helpful.
+A bad error can be frustrating. Poor results are disappointing.
+We read each file and count the words. We also measure readability.
+Good code and good tests help us improve. The final result is wonderful.
