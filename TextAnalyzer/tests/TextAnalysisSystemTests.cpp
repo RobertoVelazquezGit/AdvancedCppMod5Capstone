@@ -335,7 +335,7 @@ namespace {
         TextAnalysisSystem system(1);
         system.batchProcess(input.string(), ".txt", output.string());
         check(std::distance(fs::directory_iterator(output), fs::directory_iterator{}) == 2,
-            "Expected only two reports, without nested files or other extensions");  // ToDo
+            "Expected only two reports, without nested files or other extensions");
         const auto report = read(output / "sample_report.txt");
         for (const auto* fragment : {
             "Text Analysis Report\n====================\n", "Readability Analyzer\n",
@@ -356,7 +356,17 @@ namespace {
             && empty.find("Total words: 0\n") != std::string::npos
             && empty.find("Sentiment score [-1, 1]: 0.00\n") != std::string::npos,
             "Empty input must still produce an analysis report");
-        write(output / "sample_report.txt", "STALE CONTENT");
+        /**
+         * @brief Replaces the entire report with stale text to test overwriting.
+         * @details The write helper opens an std::ofstream in its default output
+         * mode, which truncates an existing file before writing. After this call,
+         * the file contains only "STALE CONTENT", with no added newline; none
+         * of the previous report remains. The following batchProcess call must
+         * regenerate the report. Comparing it with the original report verifies
+         * that batch processing replaces stale contents rather than appending
+         * to them or leaving the existing file unchanged.
+         */
+		write(output / "sample_report.txt", "STALE CONTENT");  // Replace the report with a known string to check deterministic overwrite.  
         system.batchProcess(input.string(), ".txt", output.string());
         check(read(output / "sample_report.txt") == report, "Report was not overwritten deterministically");
         check(read(input / "sample.txt") == "Good good. Bad!", "Input was modified");
@@ -390,14 +400,14 @@ namespace {
     void testBatchErrors(const fs::path& dir) {
         TextAnalysisSystem system(1);
         expectThrows<fs::filesystem_error>([&] {
-            system.batchProcess((dir / "missing").string(), ".txt", (dir / "out").string());
+			system.batchProcess((dir / "missing").string(), ".txt", (dir / "out").string());  // inside listFiles
         });
         expectThrows<std::invalid_argument>([&] {
-            system.batchProcess(dir.string(), ".txt", (dir / ".").string());
+            system.batchProcess(dir.string(), ".txt", (dir / ".").string());  // inside batchProcess
         });
         write(dir / "file", "occupied");
         expectThrows<fs::filesystem_error>([&] {
-            system.batchProcess(dir.string(), ".txt", (dir / "file").string());
+			system.batchProcess(dir.string(), ".txt", (dir / "file").string());  // inside batchProcess and create_directories   
         });
     }
 
@@ -421,7 +431,7 @@ namespace {
             "A failed report prevented another file from being processed");
         check(fs::is_directory(dir / "output" / "blocked_report.txt"), "Blocked destination changed");
     }
-}
+}  // Finish local namespace to avoid polluting the global namespace with helper functions and types.   
 /**
  * @brief Executes all registered integration cases and reports their outcomes.
  * @details Runs each registered case in its own numbered subdirectory. An
